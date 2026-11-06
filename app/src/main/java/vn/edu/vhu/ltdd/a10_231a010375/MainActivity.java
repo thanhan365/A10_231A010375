@@ -1,0 +1,80 @@
+package vn.edu.vhu.ltdd.a10_231a010375;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "A10_231A010375";
+    public static final String EXTRA_VI_TRI = "extra_vi_tri";
+
+    public static final List<Integer> ANH = new ArrayList<>(Arrays.asList(
+            R.drawable.anh1, R.drawable.anh2, R.drawable.anh3, R.drawable.anh4,
+            R.drawable.anh5, R.drawable.anh6, R.drawable.anh7, R.drawable.anh8
+    ));
+
+    private final List<String> chuThich = new ArrayList<>();
+    private AnhAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
+
+        for (int i = 0; i < ANH.size(); i++) {
+            chuThich.add(getString(R.string.anh_so, i + 1));
+        }
+
+        RecyclerView rv = findViewById(R.id.rvAnh);
+        rv.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        rv.setHasFixedSize(true);
+
+        adapter = new AnhAdapter(ANH, chuThich, viTri -> {
+            Log.d(TAG, "Mở ảnh lớn tại vị trí " + viTri);
+            Intent i = new Intent(this, ViewerActivity.class);
+            i.putExtra(EXTRA_VI_TRI, viTri);
+            startActivity(i);
+        });
+        rv.setAdapter(adapter);
+
+        findViewById(R.id.btnDoiCot).setOnClickListener(v -> doiSoCot(rv));
+    }
+
+    private void doiSoCot(RecyclerView rv) {
+        RecyclerView.LayoutManager lm = rv.getLayoutManager();
+        if (lm instanceof StaggeredGridLayoutManager) {
+            StaggeredGridLayoutManager sgl = (StaggeredGridLayoutManager) lm;
+            int soCot = sgl.getSpanCount() + 1;
+            if (soCot > 4) soCot = 2;
+            sgl.setSpanCount(soCot);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, getString(R.string.so_cot, soCot), Toast.LENGTH_SHORT).show();
+        } else if (lm instanceof GridLayoutManager) {
+            GridLayoutManager glm = (GridLayoutManager) lm;
+            int soCot = glm.getSpanCount() + 1;
+            if (soCot > 4) soCot = 2;
+            glm.setSpanCount(soCot);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, getString(R.string.so_cot, soCot), Toast.LENGTH_SHORT).show();
+        }
+    }
+}
